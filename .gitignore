@@ -22,3 +22,7 @@ log/
 # Local tooling state (not part of the project)
 .remember/
 push_to_github.sh
+
+# Not published to the repository
+docs/
+reports/

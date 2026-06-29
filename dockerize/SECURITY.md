@@ -78,7 +78,7 @@ No `secrets:` blocks; no `.env`; nothing baked into image layers.
 | ros:jazzy-ros-base (base) | yes (@sha256:6513503d…) | — | — | — | Ubuntu 24.04 + ROS Jazzy base |
 
 **Image scan not performed:** neither `docker scout` nor `trivy` is installed on
-this host, and the skill does not install scanners on the user's behalf.
+this host.
 **Follow-up (recommended before any non-local use):**
 ```bash
 # Option A — Docker Scout (Docker Desktop / engine plugin)

@@ -1,12 +1,9 @@
 # syntax=docker/dockerfile:1.7
-# Drone Rescue Simulation — hardened multi-stage image
+# Drone Rescue Simulation, hardened multi-stage image.
 # ROS 2 Jazzy + Gazebo Harmonic. One image, three uses: sim / bench / GUI.
-# Produced by the /dockerize skill (fresh run 2026-06-19, native-Linux + NVIDIA
-# target). The hand-written drone_rescue_ws/Dockerfile is preserved as prior art;
-# this file supersedes it.
 
 # ---- base: ROS 2 Jazzy + full RUNTIME dependency closure -------------------
-# Base pinned by digest (skill hard rule). ros:jazzy-ros-base resolved
+# Base pinned by digest. ros:jazzy-ros-base resolved
 # 2026-06-19. Bump = explicit edit here.
 FROM ros@sha256:6513503d0b10e919fbe8134981d4f9d19b5c1f9b045b87a9fe3b0b9e03e7c2a9 AS base
 
@@ -29,10 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # dashboard and mission-control tooling import, and the Mesa GL stack (llvmpipe
 # software rendering for the reproducible bench + Intel iGPU fallback; NVIDIA GL
 # is injected at runtime by nvidia-container-toolkit, not baked here).
-# Named packages pinned to exact versions resolved 2026-06-19 (skill hard rule;
-# user-chosen "base digest + named pkgs" depth). Bumping a version is an
-# explicit edit here. NOTE vs prior art: ROS snapshots rolled to noble.20260615;
-# python3-psutil ADDED (perf_sampler.py runtime dep — P3-3).
+# Named packages pinned to exact versions resolved 2026-06-19. Bumping a
+# version is an explicit edit here. python3-psutil is included as a
+# perf_sampler.py runtime dependency.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       gz-harmonic=1.0.0-1~noble \
       ros-jazzy-ros-gz=1.0.22-1noble.20260616.074726 \
@@ -129,7 +125,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ros-jazzy-rcl-logging-noop=3.1.1-1noble.20260604.025147 \
  && rm -rf /var/lib/apt/lists/*
 
-# Non-root user, UID >= 10000 to avoid host-collision (skill universal default).
+# Non-root user, UID >= 10000 to avoid host-collision.
 RUN groupadd --gid 10001 app \
  && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/app --shell /bin/bash app
 

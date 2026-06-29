@@ -76,7 +76,7 @@ placements, and environmental conditions; a library of ready-made scenarios
 (`default`, `cluster`, `sparse`, `hazard`, `low_visibility`, `dying_swarm`,
 `sloped_terrain`) each varies one dimension off the baseline. Base parameter files
 cover the drones, the pheromone field, the weather/wind model, and the no-fly
-zones. See `dockerize/RUNBOOK.md` for the full parameter reference.
+zones. These all live under `drone_rescue_ws/src/drone_rescue_bringup/config/`.
 
 ## What's inside
 
@@ -113,7 +113,4 @@ PYTHONPATH=src/drone_rescue_coordination:$PYTHONPATH python3 -m pytest src/*/tes
 | Document | What it covers |
 |---|---|
 | `dockerize/TUTORIAL.md` | Step-by-step walk-through from build to results. |
-| `dockerize/RUNBOOK.md` | Operating the stack: prerequisites, parameters, backups, troubleshooting, upgrades. |
-| `docs/studyguide/` | A concise illustrated guide to the internal architecture and the algorithms behind the coordination (build to `main.pdf`). |
-| `docs/thesis/` | The full, in-depth technical report, including the evaluation study. |
-| `dockerize/REPORT.md`, `dockerize/SECURITY.md` | Container build validation and security posture. |
+| `dockerize/SECURITY.md` | Container security posture and per-service controls. |

@@ -49,15 +49,12 @@ Recorded missions persist in the `drone-rescue_drone-runs` Docker volume.
   rendering automatically (slower, still correct).
 - The **benchmark** deliberately uses software rendering for host-independent,
   reproducible numbers. Validated real-time factor matches/exceeds bare metal
-  (RTF 0.3823 vs 0.3665 baseline — see `REPORT.md`).
+  (RTF 0.3823 vs 0.3665 baseline).
 
 ## Going deeper
 
 - `TUTORIAL.md` — guided, copy-paste walk-through from build to results.
-- `RUNBOOK.md` — operator reference: prerequisites, backups, troubleshooting, upgrades.
 - `SECURITY.md` — hardening posture, per-service controls, host changes made.
-- `REPORT.md` — what was containerized, the validation result, open issues.
-- `architecture.md` / `recon.json` — the topology decision and its evidence.
 
 ## Requirements
 

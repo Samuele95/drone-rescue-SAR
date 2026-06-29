@@ -157,8 +157,6 @@ Your source tree is never touched; `./drone.sh install` rebuilds from scratch.
 |---|---|
 | `sim` never healthy | `./drone.sh run logs`; rebuild (`./drone.sh install`) if Fuel models are missing |
 | GUI window doesn't appear | run `xhost +local:`, check `echo $DISPLAY`; on Wayland it goes via XWayland |
-| GPU not used / slow | `./drone.sh deps`; after a kernel upgrade reinstall `linux-modules-nvidia-580-open-$(uname -r)` (see RUNBOOK) |
+| GPU not used / slow | `./drone.sh deps`; after a kernel upgrade reinstall `linux-modules-nvidia-580-open-$(uname -r)` |
 | "Image not built" | `./drone.sh install` |
 | Out of disk during build | `docker builder prune`; ensure ~10 GB free |
-
-More detail in `RUNBOOK.md`.
