@@ -1,0 +1,762 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="quadrotor">
+    <static>false</static>
+
+    <!-- Main body frame -->
+    <link name="base_link">
+      <inertial>
+        <mass>1.5</mass>
+        <inertia>
+          <ixx>0.029125</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.029125</iyy>
+          <iyz>0</iyz>
+          <izz>0.055225</izz>
+        </inertia>
+      </inertial>
+
+      <collision name="body_collision">
+        <geometry>
+          <box>
+            <size>0.4 0.4 0.1</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <!-- Main body visual (central fuselage) -->
+      <visual name="body_visual">
+        <geometry>
+          <box>
+            <size>0.25 0.25 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>${DRONE_COLOR_R} ${DRONE_COLOR_G} ${DRONE_COLOR_B} 1</ambient>
+          <diffuse>${DRONE_COLOR_R} ${DRONE_COLOR_G} ${DRONE_COLOR_B} 1</diffuse>
+          <specular>0.4 0.4 0.4 1</specular>
+        </material>
+      </visual>
+
+      <!-- Top canopy (dome-like shape) -->
+      <visual name="canopy_visual">
+        <pose>0 0 0.05 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.06</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 0.6</ambient>
+          <diffuse>0.2 0.2 0.2 0.6</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+        </material>
+      </visual>
+
+      <!-- Identification stripe (visible from above) -->
+      <visual name="id_stripe">
+        <pose>0 0 0.045 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.22 0.06 0.005</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>${DRONE_COLOR_R} ${DRONE_COLOR_G} ${DRONE_COLOR_B} 1</ambient>
+          <diffuse>${DRONE_COLOR_R} ${DRONE_COLOR_G} ${DRONE_COLOR_B} 1</diffuse>
+          <emissive>${DRONE_COLOR_R} ${DRONE_COLOR_G} ${DRONE_COLOR_B} 0.3</emissive>
+        </material>
+      </visual>
+
+      <!-- Camera housing -->
+      <visual name="camera_housing">
+        <pose>0 0 -0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.04 0.03</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Landing gear (4 legs at corners) -->
+      <visual name="landing_gear_fl">
+        <pose>0.1 0.1 -0.08 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.08</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="landing_gear_fr">
+        <pose>0.1 -0.1 -0.08 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.08</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="landing_gear_bl">
+        <pose>-0.1 0.1 -0.08 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.08</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="landing_gear_br">
+        <pose>-0.1 -0.1 -0.08 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.08</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Arms visual (slightly thicker for better visibility) -->
+      <visual name="arm_front_left">
+        <pose>0.15 0.15 0 0 0 0.785</pose>
+        <geometry>
+          <box>
+            <size>0.3 0.03 0.02</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="arm_front_right">
+        <pose>0.15 -0.15 0 0 0 -0.785</pose>
+        <geometry>
+          <box>
+            <size>0.3 0.03 0.02</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="arm_back_left">
+        <pose>-0.15 0.15 0 0 0 -0.785</pose>
+        <geometry>
+          <box>
+            <size>0.3 0.03 0.02</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="arm_back_right">
+        <pose>-0.15 -0.15 0 0 0 0.785</pose>
+        <geometry>
+          <box>
+            <size>0.3 0.03 0.02</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- IMU sensor -->
+      <sensor name="imu_sensor" type="imu">
+        <always_on>1</always_on>
+        <update_rate>100</update_rate>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.017</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.017</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.017</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+
+      <!-- RGB Camera (downward facing for survey) -->
+      <!-- Reduced from 640x480@30 → 320x240@5 to keep the ros_gz_image bridge
+           and the per-drone DDS path under load (4 drones × full HD@30Hz starves
+           the controller-loop executor). -->
+      <sensor name="camera" type="camera">
+        <pose>0 0 -0.05 0 1.5708 0</pose>
+        <always_on>1</always_on>
+        <update_rate>5</update_rate>
+        <camera>
+          <!-- Widened from 60° to 90° for realistic SAR coverage. Real-world
+               wide-angle survey lenses (e.g. DJI M30T, MicaSense RedEdge)
+               sit in the 80–95° FOV range. At 25m altitude, 90° FOV gives
+               ~50m ground footprint, ~3× the previous 17m. -->
+          <horizontal_fov>1.5708</horizontal_fov>
+          <image>
+            <width>480</width>
+            <height>360</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+      </sensor>
+
+      <!-- Third-person follow camera. Mounted 3m behind and 1.5m above the
+           drone, pitched 0.3 rad (≈17°) downward so the drone stays in the
+           lower-centre of the frame against the world below. 2Hz to keep
+           the gz sim server responsive: 4 drones × 2 cameras × 5Hz each
+           overloaded mid-end CPUs and stalled the world clock. -->
+      <sensor name="follow_camera" type="camera">
+        <pose>-3.0 0 1.5 0 0.3 0</pose>
+        <always_on>1</always_on>
+        <update_rate>2</update_rate>
+        <camera>
+          <horizontal_fov>1.396</horizontal_fov>  <!-- 80° -->
+          <image>
+            <width>320</width>
+            <height>240</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>200</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+      </sensor>
+
+      <!-- LiDAR sensor (360 degree). 5Hz is plenty for collision-imminent
+           detection in drone_health_monitor and detection_filter ground
+           corroboration; the previous 10Hz × 5760 rays × 4 drones was a
+           significant chunk of gz sim's render time. -->
+      <sensor name="lidar" type="gpu_lidar">
+        <pose>0 0 0.05 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>5</update_rate>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>16</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.261799</min_angle>
+              <max_angle>0.261799</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.5</min>
+            <max>50.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+
+      <!-- NavSat (GPS) sensor -->
+      <sensor name="navsat" type="navsat">
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <navsat>
+          <position_sensing>
+            <horizontal>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.5</stddev>
+              </noise>
+            </horizontal>
+            <vertical>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>1.0</stddev>
+              </noise>
+            </vertical>
+          </position_sensing>
+        </navsat>
+      </sensor>
+    </link>
+
+    <!-- Rotor Front Left (CCW) -->
+    <link name="rotor_fl">
+      <pose>0.22 0.22 0.05 0 0 0</pose>
+      <inertial>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.75e-06</iyy>
+          <iyz>0</iyz>
+          <izz>1.66e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_fl_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <!-- Rotor hub -->
+      <visual name="rotor_fl_hub">
+        <geometry>
+          <cylinder>
+            <radius>0.015</radius>
+            <length>0.015</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Rotor disc (semi-transparent spinning effect) -->
+      <visual name="rotor_fl_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 0.5</ambient>
+          <diffuse>0.1 0.1 0.1 0.5</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_fl_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_fl</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Rotor Front Right (CW) -->
+    <link name="rotor_fr">
+      <pose>0.22 -0.22 0.05 0 0 0</pose>
+      <inertial>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.75e-06</iyy>
+          <iyz>0</iyz>
+          <izz>1.66e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_fr_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <!-- Rotor hub -->
+      <visual name="rotor_fr_hub">
+        <geometry>
+          <cylinder>
+            <radius>0.015</radius>
+            <length>0.015</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Rotor disc (semi-transparent spinning effect) -->
+      <visual name="rotor_fr_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 0.5</ambient>
+          <diffuse>0.1 0.1 0.1 0.5</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_fr_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_fr</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Rotor Back Left (CW) -->
+    <link name="rotor_bl">
+      <pose>-0.22 0.22 0.05 0 0 0</pose>
+      <inertial>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.75e-06</iyy>
+          <iyz>0</iyz>
+          <izz>1.66e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_bl_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <!-- Rotor hub -->
+      <visual name="rotor_bl_hub">
+        <geometry>
+          <cylinder>
+            <radius>0.015</radius>
+            <length>0.015</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Rotor disc (semi-transparent spinning effect) -->
+      <visual name="rotor_bl_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 0.5</ambient>
+          <diffuse>0.1 0.1 0.1 0.5</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_bl_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_bl</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Rotor Back Right (CCW) -->
+    <link name="rotor_br">
+      <pose>-0.22 -0.22 0.05 0 0 0</pose>
+      <inertial>
+        <mass>0.025</mass>
+        <inertia>
+          <ixx>9.75e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.75e-06</iyy>
+          <iyz>0</iyz>
+          <izz>1.66e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_br_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <!-- Rotor hub -->
+      <visual name="rotor_br_hub">
+        <geometry>
+          <cylinder>
+            <radius>0.015</radius>
+            <length>0.015</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Rotor disc (semi-transparent spinning effect) -->
+      <visual name="rotor_br_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>0.01</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 0.5</ambient>
+          <diffuse>0.1 0.1 0.1 0.5</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_br_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_br</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- MulticopterMotorModel plugin for each rotor -->
+    <plugin filename="gz-sim-multicopter-motor-model-system"
+            name="gz::sim::systems::MulticopterMotorModel">
+      <robotNamespace>drone</robotNamespace>
+      <jointName>rotor_fl_joint</jointName>
+      <linkName>rotor_fl</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>800.0</maxRotVelocity>
+      <motorConstant>8.54858e-06</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>0</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <motorSpeedPubTopic>motor_speed/0</motorSpeedPubTopic>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <plugin filename="gz-sim-multicopter-motor-model-system"
+            name="gz::sim::systems::MulticopterMotorModel">
+      <robotNamespace>drone</robotNamespace>
+      <jointName>rotor_fr_joint</jointName>
+      <linkName>rotor_fr</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>800.0</maxRotVelocity>
+      <motorConstant>8.54858e-06</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>1</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <motorSpeedPubTopic>motor_speed/1</motorSpeedPubTopic>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <plugin filename="gz-sim-multicopter-motor-model-system"
+            name="gz::sim::systems::MulticopterMotorModel">
+      <robotNamespace>drone</robotNamespace>
+      <jointName>rotor_bl_joint</jointName>
+      <linkName>rotor_bl</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>800.0</maxRotVelocity>
+      <motorConstant>8.54858e-06</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>2</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <motorSpeedPubTopic>motor_speed/2</motorSpeedPubTopic>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <plugin filename="gz-sim-multicopter-motor-model-system"
+            name="gz::sim::systems::MulticopterMotorModel">
+      <robotNamespace>drone</robotNamespace>
+      <jointName>rotor_br_joint</jointName>
+      <linkName>rotor_br</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>800.0</maxRotVelocity>
+      <motorConstant>8.54858e-06</motorConstant>
+      <momentConstant>0.016</momentConstant>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorNumber>3</motorNumber>
+      <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+      <motorSpeedPubTopic>motor_speed/3</motorSpeedPubTopic>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <!-- Multicopter velocity controller - uses official Gazebo test values -->
+    <!-- robotNamespace uses Gazebo model/ prefix + drone name placeholder -->
+    <!-- The placeholder ${DRONE_NAME} is replaced at spawn time by launch file -->
+    <plugin filename="gz-sim-multicopter-control-system"
+            name="gz::sim::systems::MulticopterVelocityControl">
+      <robotNamespace>model/${DRONE_NAME}</robotNamespace>
+      <commandSubTopic>cmd_vel</commandSubTopic>
+      <motorControlPubTopic>command/motor_speed</motorControlPubTopic>
+      <enableSubTopic>enable</enableSubTopic>
+      <comLinkName>base_link</comLinkName>
+      <velocityGain>2.7 2.7 2.7</velocityGain>
+      <attitudeGain>2 3 0.15</attitudeGain>
+      <angularRateGain>0.4 0.52 0.18</angularRateGain>
+      <maximumLinearAcceleration>2 2 2</maximumLinearAcceleration>
+      <maximumLinearVelocity>5 5 3</maximumLinearVelocity>
+      <maximumAngularVelocity>3 3 1</maximumAngularVelocity>
+      <linearVelocityNoiseMean>0 0 0</linearVelocityNoiseMean>
+      <linearVelocityNoiseStdDev>0 0 0</linearVelocityNoiseStdDev>
+      <angularVelocityNoiseMean>0 0 0</angularVelocityNoiseMean>
+      <angularVelocityNoiseStdDev>0 0 0</angularVelocityNoiseStdDev>
+
+      <rotorConfiguration>
+        <rotor>
+          <jointName>rotor_fl_joint</jointName>
+          <forceConstant>8.54858e-06</forceConstant>
+          <momentConstant>0.016</momentConstant>
+          <direction>1</direction>
+        </rotor>
+        <rotor>
+          <jointName>rotor_fr_joint</jointName>
+          <forceConstant>8.54858e-06</forceConstant>
+          <momentConstant>0.016</momentConstant>
+          <direction>-1</direction>
+        </rotor>
+        <rotor>
+          <jointName>rotor_bl_joint</jointName>
+          <forceConstant>8.54858e-06</forceConstant>
+          <momentConstant>0.016</momentConstant>
+          <direction>-1</direction>
+        </rotor>
+        <rotor>
+          <jointName>rotor_br_joint</jointName>
+          <forceConstant>8.54858e-06</forceConstant>
+          <momentConstant>0.016</momentConstant>
+          <direction>1</direction>
+        </rotor>
+      </rotorConfiguration>
+    </plugin>
+
+    <!-- Odometry publisher -->
+    <plugin filename="gz-sim-odometry-publisher-system"
+            name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_topic>odom</odom_topic>
+      <dimensions>3</dimensions>
+    </plugin>
+
+    <!-- Pose publisher -->
+    <plugin filename="gz-sim-pose-publisher-system"
+            name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>true</publish_link_pose>
+      <publish_collision_pose>false</publish_collision_pose>
+      <publish_visual_pose>false</publish_visual_pose>
+      <publish_nested_model_pose>true</publish_nested_model_pose>
+    </plugin>
+  </model>
+</sdf>

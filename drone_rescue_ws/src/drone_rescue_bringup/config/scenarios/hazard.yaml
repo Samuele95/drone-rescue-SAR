@@ -1,0 +1,35 @@
+name: "Hazard"
+description: |
+  Smaller search disk (50 m radius) and the existing no-fly zones become
+  proportionally larger relative to the search area, raising the chance
+  of LiDAR-driven escape climbs. Tests the reactive-altitude /
+  obstacle-deflection pathway under load. Mission timeout shortened
+  to 360 s — operator should still confirm 4-5 victims if avoidance
+  works.
+
+launch:
+  num_drones: 4
+  coverage_pattern: spiral_out
+
+mission:
+  mission_radius: 50.0
+  inner_radius: 5.0
+  # NOTE: see default.yaml, JSONL metadata only.
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.90
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 360.0
+
+detection:
+  confidence_floor: 0.65
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.80
+
+ground_truth_victims:
+  - {id: 1, position: [44.0, 38.0, 0.0]}
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 3, position: [-12.0, 16.0, 0.0]}
+  - {id: 4, position: [-8.0, 34.0, 0.0]}

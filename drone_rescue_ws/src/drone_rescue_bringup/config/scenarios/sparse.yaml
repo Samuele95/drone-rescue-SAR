@@ -1,0 +1,36 @@
+name: "Sparse"
+description: |
+  Coverage scaling test: 2 drones instead of 4. Each drone now owns a
+  180° sector and has roughly twice the wp_total. Expected mission
+  completion time should be ~2× the Default scenario; this lets the
+  scientific writeup show coverage time vs swarm size.
+
+launch:
+  num_drones: 2
+  coverage_pattern: spiral_out
+
+mission:
+  mission_radius: 70.0
+  inner_radius: 5.0
+  # NOTE: see default.yaml, these mission/* values feed the JSONL
+  # metadata, not the flight nodes. Detection-pipeline fix landed in
+  # detector code + launch file.
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.90
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 1200.0   # twice the default budget
+
+detection:
+  confidence_floor: 0.65
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.80
+
+ground_truth_victims:
+  - {id: 1, position: [44.0, 38.0, 0.0]}
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 3, position: [-12.0, 16.0, 0.0]}
+  - {id: 4, position: [55.0, 48.0, 0.0]}
+  - {id: 5, position: [-8.0, 34.0, 0.0]}

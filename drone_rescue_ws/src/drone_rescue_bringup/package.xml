@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>drone_rescue_bringup</name>
+  <version>1.0.0</version>
+  <description>Launch files and configurations for drone rescue simulation</description>
+  <maintainer email="ros@todo.todo">ros</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>drone_rescue_gazebo</exec_depend>
+  <exec_depend>drone_rescue_msgs</exec_depend>
+  <exec_depend>drone_rescue_coordination</exec_depend>
+  <exec_depend>drone_rescue_viz</exec_depend>
+  <!-- Native plugin .so for the TextOverlay panel referenced in
+       rescue_mission.rviz. Without this apt package the load fails at
+       startup with "undefined symbol". -->
+  <exec_depend>rviz_2d_overlay_plugins</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>launch_testing_ros</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
+  <test_depend>lifecycle_msgs</test_depend>
+  <test_depend>diagnostic_msgs</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

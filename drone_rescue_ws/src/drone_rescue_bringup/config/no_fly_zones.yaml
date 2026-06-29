@@ -1,0 +1,76 @@
+# No-Fly Zones Configuration
+# Define restricted areas where drones should not enter
+# Coordinates are in world frame (meters)
+
+no_fly_zones:
+  # Zone 1: Unstable damaged building area
+  - name: "unstable_structure_1"
+    type: "polygon"
+    priority: "high"  # high, medium, low
+    reason: "Structurally unstable - collapse risk"
+    vertices:
+      - [20.0, 10.0]
+      - [35.0, 10.0]
+      - [35.0, 25.0]
+      - [20.0, 25.0]
+    min_altitude: 0.0
+    max_altitude: 20.0  # Full height restriction
+    buffer_distance: 2.0  # Safety buffer around zone
+
+  # Zone 2: Active rescue operation area
+  - name: "rescue_operation_1"
+    type: "circle"
+    priority: "high"
+    reason: "Active ground rescue operation"
+    center: [-20.0, 25.0]
+    radius: 15.0
+    min_altitude: 0.0
+    max_altitude: 15.0
+    buffer_distance: 3.0
+
+  # Zone 3: Gas leak hazard
+  - name: "gas_leak_zone"
+    type: "polygon"
+    priority: "critical"  # Absolute no-fly
+    reason: "Gas leak - explosion hazard"
+    vertices:
+      - [5.0, 15.0]
+      - [15.0, 15.0]
+      - [15.0, 28.0]
+      - [5.0, 28.0]
+    min_altitude: 0.0
+    max_altitude: 50.0
+    buffer_distance: 5.0
+
+  # Zone 4: Power lines area
+  - name: "power_lines"
+    type: "polygon"
+    priority: "medium"
+    reason: "Downed power lines"
+    vertices:
+      - [-35.0, -10.0]
+      - [-25.0, -10.0]
+      - [-25.0, 10.0]
+      - [-35.0, 10.0]
+    min_altitude: 0.0
+    max_altitude: 8.0  # Only low altitude restriction
+    buffer_distance: 2.0
+
+  # Zone 5: Staging area - low altitude restriction
+  - name: "staging_area"
+    type: "circle"
+    priority: "low"
+    reason: "Ground personnel staging area"
+    center: [-50.0, 0.0]
+    radius: 8.0
+    min_altitude: 0.0
+    max_altitude: 5.0  # Allow flyover at higher altitude
+    buffer_distance: 1.0
+
+# Global settings
+global_settings:
+  default_buffer_distance: 2.0
+  warning_distance: 5.0  # Distance to start warning
+  hard_boundary: true  # If true, drones must stop at boundary
+  visualization_enabled: true
+  update_rate: 10.0  # Hz

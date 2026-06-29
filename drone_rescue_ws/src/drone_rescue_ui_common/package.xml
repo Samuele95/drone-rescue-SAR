@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>drone_rescue_ui_common</name>
+  <version>1.0.0</version>
+  <description>
+    Shared UI/projection primitives used by both drone_rescue_dashboard
+    (live operator view) and drone_rescue_mission_control (meta-mission
+    launcher + analytics). Holds the MissionViewModel reducer, the
+    operator-facing constants (task labels, severity colours, drone
+    name lists), and the QoS profile factory so the two UI surfaces
+    derive their state from one source instead of independently
+    re-deriving it from wire-format messages.
+  </description>
+  <maintainer email="ros@todo.todo">ros</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>drone_rescue_msgs</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

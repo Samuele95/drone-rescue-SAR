@@ -1,0 +1,40 @@
+name: "Sloped Terrain"
+description: |
+  Demonstrates the elevation model driving flight (P1-2). Identical to Default
+  except the terrain is tilted: terrain_slope_x 0.04 / terrain_slope_y -0.02
+  (m/m), paired with worlds/earthquake_zone_sloped.sdf whose ground plane is
+  tilted to the same gradient (z = 0.04*x - 0.02*y). mission_manager flies each
+  scan waypoint at constant above-ground level (survey_altitude + elevation_at)
+  and victim_detector measures AGL for its detection gate (P0-3), so detection
+  still works over the slope — at the disk edge (~55 m out) the terrain rises
+  ~2.2 m, which the absolute-z gate would previously have started to clip.
+
+launch:
+  num_drones: 4
+  coverage_pattern: spiral_out
+  world: earthquake_zone_sloped.sdf
+  terrain_slope_x: 0.04
+  terrain_slope_y: -0.02
+
+mission:
+  mission_radius: 70.0
+  inner_radius: 5.0
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.90
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 600.0
+
+detection:
+  confidence_floor: 0.65
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.80
+
+ground_truth_victims:
+  - {id: 1, position: [44.0, 38.0, 0.0]}
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 3, position: [-12.0, 16.0, 0.0]}
+  - {id: 4, position: [55.0, 48.0, 0.0]}
+  - {id: 5, position: [-8.0, 34.0, 0.0]}

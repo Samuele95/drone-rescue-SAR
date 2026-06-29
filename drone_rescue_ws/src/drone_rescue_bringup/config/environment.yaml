@@ -1,0 +1,69 @@
+# Environment simulation parameters
+
+# --- Weather System ---
+weather:
+  initial_state: "clear"  # clear, windy, storm
+
+  # State transition parameters
+  min_state_duration: 60.0  # seconds minimum before state can change
+  max_state_duration: 300.0  # seconds maximum before forced change
+
+  # Transition probabilities (from current state)
+  transitions:
+    clear:
+      clear: 0.7
+      windy: 0.25
+      storm: 0.05
+    windy:
+      clear: 0.3
+      windy: 0.5
+      storm: 0.2
+    storm:
+      clear: 0.1
+      windy: 0.6
+      storm: 0.3
+
+  # Weather effects on drones
+  effects:
+    clear:
+      wind_speed_range: [0.0, 2.0]  # m/s
+      visibility: 1.0
+      lidar_range_multiplier: 1.0
+      battery_drain_multiplier: 1.0
+    windy:
+      wind_speed_range: [5.0, 12.0]  # m/s
+      visibility: 0.9
+      lidar_range_multiplier: 1.0
+      battery_drain_multiplier: 1.2
+    storm:
+      wind_speed_range: [15.0, 25.0]  # m/s
+      visibility: 0.5
+      lidar_range_multiplier: 0.5
+      battery_drain_multiplier: 1.5
+
+# --- Wind Model ---
+wind:
+  base_direction: 0.0  # radians (0 = North)
+  direction_variance: 0.3  # radians - how much direction can vary
+  gust_probability: 0.1  # probability of gust per second
+  gust_magnitude_multiplier: 1.5  # how much stronger gusts are
+  gust_duration: 2.0  # seconds
+  update_rate: 10.0  # Hz
+
+# --- Terrain ---
+terrain:
+  type: "flat"  # flat, heightmap, procedural
+  heightmap_file: ""  # path to heightmap if type is heightmap
+  base_elevation: 0.0  # meters
+  max_elevation: 50.0  # meters (for procedural or heightmap)
+
+# --- No-Fly Zones ---
+no_fly_zones:
+  enabled: true
+  zones: []  # List of polygon definitions (defined in separate file)
+  safety_buffer: 5.0  # meters - extra margin around zones
+
+# --- Simulation Time ---
+simulation:
+  real_time_factor: 1.0  # 1.0 = real time, 2.0 = 2x speed
+  physics_update_rate: 1000.0  # Hz

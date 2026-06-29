@@ -1,0 +1,42 @@
+name: "Default"
+description: |
+  Baseline 5 victims (default earthquake_zone world), 4 drones, current
+  V3 settings. Use this as the reproducible benchmark when comparing
+  strategies — every other scenario adjusts a single dimension off this.
+
+launch:
+  num_drones: 4
+  coverage_pattern: spiral_out
+
+mission:
+  mission_radius: 70.0
+  inner_radius: 5.0
+  # NOTE: these mission/* values are consumed by mission_recorder for
+  # the JSONL metadata snapshot ONLY. The flight nodes
+  # (drone_controller, drone_executor, mission_manager) get their
+  # altitude/footprint/timeout from multi_drone_simulation.launch.py
+  # (hardcoded, lines 247, 291, 504). Keep these in sync with the
+  # launch's hardcoded values to avoid lying in JSONL metadata.
+  # The actual detection-pipeline fix landed in detector code +
+  # launch file (dropped MORPH_OPEN, min_contour_area 40→5,
+  # min_distance_from_drones 9→2), altitude stays at 25 m because
+  # the world has 24 m tall structures.
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.90
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 600.0
+
+detection:
+  confidence_floor: 0.65
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.80
+
+ground_truth_victims:
+  - {id: 1, position: [44.0, 38.0, 0.0]}
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 3, position: [-12.0, 16.0, 0.0]}
+  - {id: 4, position: [55.0, 48.0, 0.0]}
+  - {id: 5, position: [-8.0, 34.0, 0.0]}

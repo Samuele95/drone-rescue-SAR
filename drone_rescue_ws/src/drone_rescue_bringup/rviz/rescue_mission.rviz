@@ -1,0 +1,298 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Selection
+    Name: Selection
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+  - Class: rviz_common/Views
+    Name: Views
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    # Grid for reference
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 200
+      Reference Frame: <Fixed Frame>
+      Value: true
+      Cell Size: 1
+
+    # TF frames for all drones
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 2
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Update Interval: 0
+      Value: true
+
+    # Drone 1 odometry
+    - Class: rviz_default_plugins/Odometry
+      Name: Drone1 Odom
+      Enabled: true
+      Topic:
+        Value: /drone1/odom
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Position Tolerance: 0.1
+      Angle Tolerance: 0.1
+      Keep: 100
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.1
+        Color: 255; 0; 0
+        Head Length: 0.3
+        Head Radius: 0.2
+        Shaft Length: 0.5
+        Shaft Radius: 0.1
+        Value: Arrow
+      Covariance:
+        Value: false
+
+    # Drone 2 odometry
+    - Class: rviz_default_plugins/Odometry
+      Name: Drone2 Odom
+      Enabled: true
+      Topic:
+        Value: /drone2/odom
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Position Tolerance: 0.1
+      Angle Tolerance: 0.1
+      Keep: 100
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.1
+        Color: 0; 255; 0
+        Head Length: 0.3
+        Head Radius: 0.2
+        Shaft Length: 0.5
+        Shaft Radius: 0.1
+        Value: Arrow
+      Covariance:
+        Value: false
+
+    # Drone 3 odometry
+    - Class: rviz_default_plugins/Odometry
+      Name: Drone3 Odom
+      Enabled: true
+      Topic:
+        Value: /drone3/odom
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Position Tolerance: 0.1
+      Angle Tolerance: 0.1
+      Keep: 100
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.1
+        Color: 0; 0; 255
+        Head Length: 0.3
+        Head Radius: 0.2
+        Shaft Length: 0.5
+        Shaft Radius: 0.1
+        Value: Arrow
+      Covariance:
+        Value: false
+
+    # Drone 4 odometry
+    - Class: rviz_default_plugins/Odometry
+      Name: Drone4 Odom
+      Enabled: true
+      Topic:
+        Value: /drone4/odom
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Position Tolerance: 0.1
+      Angle Tolerance: 0.1
+      Keep: 100
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.1
+        Color: 255; 255; 0
+        Head Length: 0.3
+        Head Radius: 0.2
+        Shaft Length: 0.5
+        Shaft Radius: 0.1
+        Value: Arrow
+      Covariance:
+        Value: false
+
+    # Pheromone map visualization
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Pheromone Map
+      Enabled: true
+      Topic:
+        Value: /pheromone/visualization
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # No-fly zones visualization
+    - Class: rviz_default_plugins/MarkerArray
+      Name: No-Fly Zones
+      Enabled: true
+      Topic:
+        Value: /zones/visualization
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # Drone path trails
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Drone Trails
+      Enabled: true
+      Topic:
+        Value: /drone_trails/visualization
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # Coverage metrics text
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Coverage Metrics
+      Enabled: true
+      Topic:
+        Value: /coverage/visualization
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # Victim markers
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Victim Markers
+      Enabled: true
+      Topic:
+        Value: /visualization/victims
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # Mission telemetry overlay
+    - Class: rviz_2d_overlay_plugins/TextOverlay
+      Name: Mission Telemetry
+      Enabled: true
+      Topic:
+        Value: /telemetry/mission_overlay
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+    # Drone status overlay
+    - Class: rviz_2d_overlay_plugins/TextOverlay
+      Name: Drone Status
+      Enabled: true
+      Topic:
+        Value: /telemetry/drone_status_overlay
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Value: true
+
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+    Frame Rate: 30
+
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 150
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.06
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 5
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 0.5
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 0.785
+    Saved: ~
+
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1000
+  Hide Left Dock: false
+  Hide Right Dock: false
+  Selection:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: false
+  Width: 1600
+  X: 100
+  Y: 100

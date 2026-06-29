@@ -1,0 +1,23 @@
+# Demo Configuration
+# Timeouts, thresholds, and parameters for automated demo execution
+
+demo:
+  timeout_real_seconds: 900      # 15 min real time max (covers ~3.75 min sim at RTF 0.25)
+  target_sim_duration: 600       # 10 min sim time target
+  rtf_threshold: 0.2             # Minimum acceptable RTF
+  coverage_completion_trigger: 60 # Lower from 75% to 60% for RTF ~0.25 reliability
+
+camera:
+  director_delay_seconds: 12     # Delay before camera director starts
+  forced_completion_timeout: 480  # Force completion shot after 8 min sim time
+  survey_trigger_coverage: 20    # Lower from 25% for faster transition
+
+health_checks:
+  gazebo_startup_timeout: 60     # Seconds to wait for Gazebo /clock
+  ros_diagnostics_timeout: 30    # Seconds to wait for /diagnostics
+  drone_spawn_timeout: 45        # Seconds to wait for all drones
+
+recording:
+  enabled: true
+  format: mp4
+  bitrate: 4000000              # 4 Mbps for 1080p

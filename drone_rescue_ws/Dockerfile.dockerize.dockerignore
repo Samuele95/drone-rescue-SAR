@@ -1,0 +1,57 @@
+# Build context = drone_rescue_ws/. Only src/ is needed by Dockerfile.dockerize.
+# Per-Dockerfile ignore (BuildKit): applies to Dockerfile.dockerize only;
+# the prior-art .dockerignore is left untouched.
+
+# Colcon build outputs — rebuilt inside the image
+build/
+install/
+log/
+
+# Run data — belongs in the named volume, never the image
+runs/
+*.bag
+*.db3
+
+# Prior-art Docker assets — not consumed by this build
+Dockerfile
+Dockerfile.dockerize
+Dockerfile.dockerize.dockerignore
+.dockerignore
+docker/
+docker-compose.yml
+scripts/
+
+# Python caches / artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# VCS / IDE / OS
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docs and logs
+docs/
+*.log
+*.md
+!src/**/*.md
+
+# Misc
+tmp/
+temp/
+*.tmp
+test_gazebo_hover.sh

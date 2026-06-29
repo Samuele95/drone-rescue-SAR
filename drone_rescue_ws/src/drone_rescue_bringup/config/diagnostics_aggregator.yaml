@@ -1,0 +1,75 @@
+# Diagnostic Aggregator Configuration
+# Groups diagnostics by drone and subsystem for rqt_robot_monitor display
+
+diagnostic_aggregator:
+  ros__parameters:
+    # Publish aggregated diagnostics at 1 Hz
+    pub_rate: 1.0
+    base_path: ''
+
+    analyzers:
+      # Drone 1 group
+      drone1:
+        type: 'diagnostic_aggregator/AnalyzerGroup'
+        path: 'Drone 1'
+        analyzers:
+          controller:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Controller'
+            startswith: ['drone1-controller']
+          surveyor:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Surveyor'
+            startswith: ['drone1-surveyor']
+
+      # Drone 2 group
+      drone2:
+        type: 'diagnostic_aggregator/AnalyzerGroup'
+        path: 'Drone 2'
+        analyzers:
+          controller:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Controller'
+            startswith: ['drone2-controller']
+          surveyor:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Surveyor'
+            startswith: ['drone2-surveyor']
+
+      # Drone 3 group
+      drone3:
+        type: 'diagnostic_aggregator/AnalyzerGroup'
+        path: 'Drone 3'
+        analyzers:
+          controller:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Controller'
+            startswith: ['drone3-controller']
+          surveyor:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Surveyor'
+            startswith: ['drone3-surveyor']
+
+      # Drone 4 group
+      drone4:
+        type: 'diagnostic_aggregator/AnalyzerGroup'
+        path: 'Drone 4'
+        analyzers:
+          controller:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Controller'
+            startswith: ['drone4-controller']
+          surveyor:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Surveyor'
+            startswith: ['drone4-surveyor']
+
+      # Shared infrastructure
+      infrastructure:
+        type: 'diagnostic_aggregator/AnalyzerGroup'
+        path: 'Infrastructure'
+        analyzers:
+          pheromone:
+            type: 'diagnostic_aggregator/GenericAnalyzer'
+            path: 'Pheromone Server'
+            startswith: ['/pheromone-grid', 'pheromone-grid']

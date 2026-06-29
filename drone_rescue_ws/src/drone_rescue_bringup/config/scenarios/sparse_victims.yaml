@@ -1,0 +1,48 @@
+name: "Sparse Victims"
+description: |
+  Few, widely-separated victims — only 2, in opposite quadrants. Uses a
+  dedicated world SDF (earthquake_zone_sparse.sdf) that bakes in just
+  victim_2 (SE) and victim_5 (NW); the other three victim bodies of the
+  default earthquake_zone world are omitted.
+
+  Purpose: with so few targets the drones rarely break off to
+  INVESTIGATE, so they fly their assigned coverage pattern almost
+  uninterrupted. Use this as the "clean coverage" reference — compare
+  its track-following / final_coverage_pct against Default (5 victims),
+  where investigate-detours perturb the pattern.
+
+  NOTE: this is an ADD — the Default / Sparse / Cluster / Hazard /
+  Low Visibility / Dying Swarm scenarios and the earthquake_zone world
+  are all left untouched. The 2 ground_truth positions below match the
+  real victim bodies kept in earthquake_zone_sparse.sdf, so detection
+  scoring (TP/FP) is meaningful here.
+
+launch:
+  num_drones: 4
+  coverage_pattern: spiral_out
+  # Dedicated sparse world. A bare filename is resolved against the
+  # drone_rescue_gazebo package's worlds/ directory by the launch file.
+  world: earthquake_zone_sparse.sdf
+
+mission:
+  mission_radius: 70.0
+  inner_radius: 5.0
+  # NOTE: see default.yaml, these mission/* values feed mission_recorder's
+  # JSONL metadata snapshot ONLY; the flight nodes read altitude/footprint/
+  # timeout from multi_drone_simulation.launch.py. Kept in sync with Default.
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.90
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 600.0
+
+detection:
+  confidence_floor: 0.65
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.80
+
+ground_truth_victims:
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 5, position: [-8.0, 34.0, 0.0]}

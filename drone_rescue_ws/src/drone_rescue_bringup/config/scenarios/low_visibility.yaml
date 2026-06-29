@@ -1,0 +1,40 @@
+name: "LowVisibility"
+description: |
+  Detector limit test. Tighter detection thresholds simulate fog or
+  worse vision: detection_filter rejects below 0.80 (vs 0.65), and the
+  confirmation threshold is raised to 0.92 (vs 0.80). investigate
+  threshold raised to 0.95. Camera FOV unchanged (a real "fog"
+  scenario would need a Gazebo visual filter; this just makes the
+  algorithm conservative).
+
+  Expected: fewer total candidates (more singletons rejected), fewer
+  confirmations, longer time-to-first-confirm. Useful baseline for
+  measuring detector tuning trade-offs.
+
+launch:
+  num_drones: 4
+  coverage_pattern: spiral_out
+
+mission:
+  mission_radius: 70.0
+  inner_radius: 5.0
+  # NOTE: see default.yaml, JSONL metadata only.
+  survey_altitude: 25.0
+  camera_footprint_m: 35.0
+  coverage_overlap: 0.85
+  investigate_confidence_floor: 0.95
+  max_concurrent_investigations: 1
+  reject_age_seconds: 60.0
+  mission_timeout_seconds: 600.0
+
+detection:
+  confidence_floor: 0.80
+  dbscan_eps_m: 6.0
+  confirmation_threshold: 0.92
+
+ground_truth_victims:
+  - {id: 1, position: [44.0, 38.0, 0.0]}
+  - {id: 2, position: [32.0, -28.0, 0.0]}
+  - {id: 3, position: [-12.0, 16.0, 0.0]}
+  - {id: 4, position: [55.0, 48.0, 0.0]}
+  - {id: 5, position: [-8.0, 34.0, 0.0]}

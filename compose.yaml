@@ -1,0 +1,338 @@
+# Drone Rescue Simulation, hardened Compose stack.
+# Supersedes drone_rescue_ws/docker-compose.yml and the prior WSL-targeted
+# compose.
+#
+#   docker compose build                     # build the one shared image
+#   docker compose up -d                     # headless simulation only (NVIDIA GL)
+#   docker compose --profile gui up -d       # simulation + dashboard + RViz
+#   docker compose --profile tools run --rm bench  --patterns spiral_out --scenarios default --trials 3 --runs-dir /data/runs/<dir>
+#   docker compose --profile tools run --rm report --help
+#   docker compose --profile tools run --rm mission_control
+#
+# GUI prerequisite (host, native X11/XWayland): grant the local containers X
+# access once per session — `bash dockerize/xhost-grant.sh` (xhost +local:).
+name: drone-rescue
+
+# ---- reusable fragments ----------------------------------------------------
+x-build: &build
+  context: ./drone_rescue_ws
+  dockerfile: Dockerfile.dockerize
+  target: runtime
+  # Build-time only: the fuelcache stage downloads Gazebo Fuel models. Host
+  # networking applies to build RUN steps only — it does NOT affect the runtime
+  # services, which stay on the internal `ros` network.
+  network: host
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Hardening shared by every service (skill universal defaults).
+x-hardening: &hardening
+  read_only: true
+  init: true
+  restart: unless-stopped
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  logging: *logging
+
+# NVIDIA GL render passthrough. nvidia-container-toolkit injects the driver
+# libraries; the `graphics` capability is what Gazebo/OGRE + Qt GL need. Mesa
+# (llvmpipe / Intel /dev/dri) remains the fallback if NVIDIA GL is unavailable.
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+x-gpu-env: &gpu-env
+  NVIDIA_VISIBLE_DEVICES: "all"
+  NVIDIA_DRIVER_CAPABILITIES: "graphics,compute,utility"
+  # Force Gazebo's OGRE2 sensor rendering onto the NVIDIA EGL vendor. The
+  # container ships both 10_nvidia.json and 50_mesa.json; glvnd was letting
+  # Gazebo's EGL pick Mesa for the NVIDIA PCI device (no Mesa driver for it →
+  # "driver (null)" / "failed to create dri2 screen") and fall back to llvmpipe
+  # software rendering — ~21 CPU cores for the 12 GPU sensors, which saturates
+  # the host and periodically stalls the sim. The lifecycle watchdog then
+  # misreads the stall as dead nodes and forces SAFE-mode RTH on the whole
+  # fleet. Pinning the NVIDIA vendor renders sensors on the RTX 4070 instead.
+  # (Dashboard 3D is GLX/Mesa via __GLX_VENDOR_LIBRARY_NAME — EGL-only knob,
+  # so this does not affect it.)
+  __EGL_VENDOR_LIBRARY_FILENAMES: "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+
+# GUI-only: pass the host Intel render node so Mesa (iris) can create a DRI3
+# screen for the X11 window instead of failing ("failed to load driver: iris").
+# RENDER_GID/VIDEO_GID are supplied by drone.sh from the host so the non-root
+# container user (10001) can open /dev/dri; Mesa falls back to software if not.
+x-gui-gl: &gui-gl
+  devices:
+    - /dev/dri:/dev/dri
+  group_add:
+    - "${RENDER_GID:-992}"
+    - "${VIDEO_GID:-44}"
+
+services:
+
+  # --- simulation core: Gazebo Harmonic + the full ROS 2 graph -------------
+  sim:
+    <<: [*hardening, *gpu]
+    build: *build
+    image: drone-rescue-sim:dockerize
+    container_name: drone-rescue-sim
+    networks: [ros]
+    shm_size: "2gb"            # FastDDS shared-memory transport + Gazebo
+    cpus: 24.0                 # Phase 5 iter1: 6→24 (host has 32; 6 throttled CPU-bound sim vs bare-metal)
+    mem_limit: 6g              # initial — bench/sim RSS ~2.1G
+    environment:
+      <<: *gpu-env
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      NUM_DRONES: "${NUM_DRONES:-4}"
+      GZ_SIM_HEADLESS_RENDERING: "1"   # offscreen EGL render of camera sensors on the GPU (no GUI client)
+    volumes:
+      - drone-runs:/data/runs
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+      - /home/app:size=256m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      # ephemeral ROS/launch logs (off the read-only rootfs). The camera-echo
+      # flood was fixed at source (primers redirect to /dev/null), so 512m suffices.
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001
+    healthcheck:
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 180s       # Gazebo world load (Fuel models) + 4-drone spawn + ~17 nodes
+    command:
+      - ros2
+      - launch
+      - drone_rescue_bringup
+      - multi_drone_simulation.launch.py
+      - "num_drones:=${NUM_DRONES:-4}"
+      - "use_rviz:=false"
+      - "runs_dir:=/data/runs"
+
+  # --- dashboard: PyQt5 mission GUI (observer) -----------------------------
+  dashboard:
+    <<: [*hardening, *gpu, *gui-gl]
+    image: drone-rescue-sim:dockerize
+    container_name: drone-rescue-dashboard
+    profiles: [gui]
+    restart: "no"              # observer GUI: closing the window must STAY closed,
+                               # not be relaunched by the shared unless-stopped policy
+    ipc: host                  # X11 MIT-SHM: share host IPC so XShmAttach to the host
+                               # X/XWayland server succeeds (see dockerize/SECURITY.md)
+    depends_on:
+      sim:
+        condition: service_healthy
+    networks: [ros]
+    shm_size: "512m"
+    cpus: 1.5                  # initial — will tune in Phase 5
+    mem_limit: 1g              # initial — will tune in Phase 5
+    environment:
+      <<: *gpu-env
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      DISPLAY: "${DISPLAY:-:0}"
+      QT_X11_NO_MITSHM: "1"
+      # 3D view (pyqtgraph GL): the app defaults to xcb_egl (setdefault), which
+      # makes the legacy fixed-function calls (glVertexPointerf) unbindable →
+      # "no valid context" → empty 3D view. Force the xcb GLX integration and
+      # pin the GLX vendor to Mesa (verified: Intel/RPL-S via /dev/dri renders
+      # cleanly). No LIBGL_ALWAYS_SOFTWARE: hardware GLX works here and forcing
+      # software is what crashes Gazebo in the mission_control container.
+      QT_XCB_GL_INTEGRATION: "xcb_glx"
+      __GLX_VENDOR_LIBRARY_NAME: "mesa"
+    volumes:
+      - drone-runs:/data/runs:ro
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+        read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+      - /home/app:size=128m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001   # ros2 run node — no launch.log flood
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f drone_rescue_dashboard >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    command: ["ros2", "run", "drone_rescue_dashboard", "dashboard"]
+
+  # --- rviz: 3D visualization window (observer) ----------------------------
+  rviz:
+    <<: [*hardening, *gpu, *gui-gl]
+    image: drone-rescue-sim:dockerize
+    container_name: drone-rescue-rviz
+    profiles: [gui]
+    restart: "no"              # observer GUI: closing the window must STAY closed
+    ipc: host                  # X11 MIT-SHM (see dockerize/SECURITY.md)
+    depends_on:
+      sim:
+        condition: service_healthy
+    networks: [ros]
+    shm_size: "512m"
+    cpus: 1.5                  # initial — will tune in Phase 5
+    mem_limit: 1g              # initial — will tune in Phase 5
+    environment:
+      <<: *gpu-env
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      DISPLAY: "${DISPLAY:-:0}"
+      QT_X11_NO_MITSHM: "1"
+      LIBGL_ALWAYS_SOFTWARE: "1"   # RViz/Ogre GL: llvmpipe gives a reliable GL context over XWayland
+    volumes:
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+        read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+      - /home/app:size=128m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001   # ros2 run node — no launch.log flood
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -x rviz2 >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    command:
+      - rviz2
+      - -d
+      - /ros2_ws/install/share/drone_rescue_bringup/rviz/rescue_mission.rviz
+
+  # --- bench: headless sweep runner (one-shot, SOFTWARE render) -------------
+  # SOFTWARE rendering (Phase 2 decision) keeps benchmark numbers host-independent.
+  # docker compose --profile tools run --rm bench --patterns spiral_out \
+  #   --scenarios default --trials 3 --runs-dir /data/runs/<dir>
+  bench:
+    <<: *hardening
+    image: drone-rescue-sim:dockerize
+    profiles: [tools]
+    networks: [ros]
+    shm_size: "2gb"
+    cpus: 24.0                 # Phase 5 iter1: 6→24 (match bare-metal core access for fair RTF)
+    mem_limit: 6g              # initial — bench/sim RSS ~2.1G
+    restart: "no"              # one-shot: override the shared unless-stopped
+    environment:
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      GZ_SIM_HEADLESS_RENDERING: "1"
+      LIBGL_ALWAYS_SOFTWARE: "1"        # llvmpipe — reproducible, no GPU
+    volumes:
+      - drone-runs:/data/runs
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+      - /home/app:size=256m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      # ephemeral ROS/launch logs (off the read-only rootfs); flood fixed at source.
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001
+    entrypoint: ["/entrypoint.sh", "ros2", "run", "drone_rescue_mission_control", "bench"]
+    command: ["--help"]
+
+  # --- mission_control: PyQt5 launcher GUI (one-shot, interactive) ---------
+  # Spawns the sim itself (LaunchSupervisor) → needs GPU + shm + display.
+  # docker compose --profile tools run --rm mission_control
+  mission_control:
+    <<: [*hardening, *gpu, *gui-gl]
+    image: drone-rescue-sim:dockerize
+    profiles: [tools]
+    networks: [ros]
+    ipc: host                   # X11 MIT-SHM (see dockerize/SECURITY.md)
+    working_dir: /data          # mission_control auto-resolves cwd/runs → writable volume
+    shm_size: "2gb"
+    cpus: 24.0                  # Phase 5 iter1: 6→24 (spawns its own sim)
+    mem_limit: 6g               # initial — RSS ~2.1G
+    restart: "no"
+    environment:
+      <<: *gpu-env
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      DISPLAY: "${DISPLAY:-:0}"
+      QT_X11_NO_MITSHM: "1"
+      # Mission Control spawns demo.launch.py, which embeds the operator
+      # dashboard *in this container* (process_supervisor.py: _LAUNCH_FILE =
+      # 'demo.launch.py') alongside the headless Gazebo server. Two GL paths
+      # coexist here and must be steered independently:
+      #   • Dashboard (pyqtgraph) renders via GLX with legacy fixed-function
+      #     calls (glVertexPointerf). The app's source default of xcb_egl
+      #     makes those unbindable → "no valid context" → empty 3D view, so
+      #     force the xcb GLX integration. Pin the GLX *vendor* to Mesa so the
+      #     dashboard uses Mesa GLX (verified: Intel/RPL-S via /dev/dri) and
+      #     never the in-container NVIDIA GLX (which is "driver (null)").
+      #   • Gazebo (OGRE2) renders via EGL and explicitly selects a hardware
+      #     device. LIBGL_ALWAYS_SOFTWARE was tried here and SEGFAULTS Gazebo
+      #     ("Not allowed to force software rendering when API explicitly
+      #     selects a hardware device" → driCreateNewScreen3 crash). It is
+      #     deliberately NOT set — __GLX_VENDOR_LIBRARY_NAME is GLX-only and
+      #     leaves Gazebo's EGL hardware path alone.
+      QT_XCB_GL_INTEGRATION: "xcb_glx"
+      __GLX_VENDOR_LIBRARY_NAME: "mesa"
+    volumes:
+      - drone-runs:/data/runs
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+        read_only: true
+      # Host-mounted folder for PDF reports exported from the GUI (Past Runs →
+      # Export). Lands in DRONE_REPORTS_DIR on the host (default ./reports).
+      - type: bind
+        source: ${DRONE_REPORTS_DIR:-./reports}
+        target: /reports
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+      - /home/app:size=256m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001   # ephemeral ROS/launch logs
+    command: ["ros2", "run", "drone_rescue_mission_control", "mission_control"]
+
+  # --- report: PDF report generator (one-shot) -----------------------------
+  # docker compose --profile tools run --rm report --help
+  report:
+    <<: *hardening
+    image: drone-rescue-sim:dockerize
+    profiles: [tools]
+    networks: [ros]
+    cpus: 2.0                  # initial — will tune in Phase 5
+    mem_limit: 2g              # initial — will tune in Phase 5
+    restart: "no"
+    environment:
+      ROS_DOMAIN_ID: "0"
+      RMW_IMPLEMENTATION: "rmw_fastrtps_cpp"
+      MPLBACKEND: "Agg"        # matplotlib headless
+    volumes:
+      - drone-runs:/data/runs
+      # Host-mounted folder for exported PDF reports. Write the report to
+      # /reports inside the container (e.g. `--out /reports/run.pdf`) and it
+      # lands in DRONE_REPORTS_DIR on the host (default ./reports). drone.sh
+      # creates it world-writable so the non-root container user (10001) can
+      # write through the bind mount.
+      - type: bind
+        source: ${DRONE_REPORTS_DIR:-./reports}
+        target: /reports
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+      - /home/app:size=128m,mode=0770,uid=10001,gid=10001
+      - /tmp/xdg:size=16m,mode=0700,uid=10001,gid=10001
+      - /logs:size=512m,mode=0770,uid=10001,gid=10001   # one-shot, minimal logging
+    entrypoint: ["/entrypoint.sh", "ros2", "run", "drone_rescue_mission_control", "report"]
+    command: ["--help"]
+
+networks:
+  ros:
+    driver: bridge
+    internal: true             # no public ingress, no runtime egress (DDS only)
+
+volumes:
+  drone-runs:

@@ -1,0 +1,76 @@
+# Camera shot sequence for drone rescue demo
+# Poses use Gazebo world frame (ENU)
+# Coordinates: x=forward, y=left, z=up
+
+# Demo timing budget (sim time):
+# - Establishing: 30s (t=0-30)
+# - Wait for deployment trigger...
+# - Deployment: 20s (follow drone takeoff)
+# - Wait for coverage 20% trigger...
+# - Survey: 120s (elevated coverage view)
+# - Detection: 20s (follow detecting drone, event-driven)
+# - Wait for coverage 60% or timeout at 480s...
+# - Completion: 45s (final panoramic)
+# Total active shots: ~235s, target with waits: 300-600s (5-10 min)
+
+shots:
+  - name: establishing
+    type: move_to_pose
+    description: "Wide angle overhead establishing shot of disaster zone"
+    pose:
+      x: 0.0
+      y: -60.0
+      z: 40.0
+      roll: 0.0
+      pitch: 0.5
+      yaw: 1.57
+    duration: 30.0
+    trigger: start
+
+  - name: deployment
+    type: follow
+    description: "Follow drone1 during takeoff"
+    entity: drone1
+    offset:
+      x: -5.0
+      y: 0.0
+      z: 3.0
+    duration: 20.0
+    trigger: event
+
+  - name: survey
+    type: move_to_pose
+    description: "Elevated view showing coverage expansion"
+    pose:
+      x: 20.0
+      y: 20.0
+      z: 30.0
+      roll: 0.0
+      pitch: 0.6
+      yaw: -2.35
+    duration: 120.0
+    trigger: coverage_25
+
+  - name: detection
+    type: follow
+    description: "Follow drone that detected victim"
+    entity: auto
+    offset:
+      x: -3.0
+      y: 2.0
+      z: 2.0
+    duration: 20.0
+    trigger: victim_detected
+
+  - name: completion
+    type: move_to_pose
+    description: "Final wide shot showing all victims marked"
+    pose:
+      x: 0.0
+      y: -50.0
+      z: 45.0
+      roll: 0.0
+      pitch: 0.6
+      yaw: 1.57
+    duration: 45.0
+    trigger: coverage_75

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>drone_rescue_dashboard</name>
+  <version>1.0.0</version>
+  <description>
+    Multipage PyQt5 mission dashboard. Tabs: Overview (state table +
+    coverage banner + log), All Cameras (4×2 grid of every drone's
+    downward + follow camera), per-drone (×4) detail pages, and the full
+    Mission Log. RViz runs as a sibling window via the launch file.
+  </description>
+  <maintainer email="ros@todo.todo">ros</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python_qt_binding</exec_depend>
+  <exec_depend>python3-pyqt5</exec_depend>
+  <!-- P1 (2026-06-10) - 3D mission sand-table (Scene3DView) -->
+  <exec_depend>python3-pyqtgraph</exec_depend>
+  <exec_depend>python3-opengl</exec_depend>
+
+  <exec_depend>drone_rescue_msgs</exec_depend>
+  <exec_depend>drone_rescue_bringup</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

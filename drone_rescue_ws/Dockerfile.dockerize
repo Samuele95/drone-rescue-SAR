@@ -1,0 +1,198 @@
+# syntax=docker/dockerfile:1.7
+# Drone Rescue Simulation — hardened multi-stage image
+# ROS 2 Jazzy + Gazebo Harmonic. One image, three uses: sim / bench / GUI.
+# Produced by the /dockerize skill (fresh run 2026-06-19, native-Linux + NVIDIA
+# target). The hand-written drone_rescue_ws/Dockerfile is preserved as prior art;
+# this file supersedes it.
+
+# ---- base: ROS 2 Jazzy + full RUNTIME dependency closure -------------------
+# Base pinned by digest (skill hard rule). ros:jazzy-ros-base resolved
+# 2026-06-19. Bump = explicit edit here.
+FROM ros@sha256:6513503d0b10e919fbe8134981d4f9d19b5c1f9b045b87a9fe3b0b9e03e7c2a9 AS base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+# Gazebo Harmonic lives in the OSRF apt repo, not the ROS or Ubuntu repos —
+# add it (binary keyring, no gnupg needed) before the closure install.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl=8.5.0-2ubuntu10.9 ca-certificates=20260601~24.04.1 \
+ && curl -fsSL https://packages.osrfoundation.org/gazebo.gpg \
+      -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+ && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable noble main" \
+      > /etc/apt/sources.list.d/gazebo-stable.list \
+ && rm -rf /var/lib/apt/lists/*
+
+# Runtime closure: Gazebo Harmonic, ROS<->GZ bridges, message packages, RViz,
+# the PyQt5 / pyqtgraph / cv_bridge / matplotlib / reportlab / psutil deps the
+# dashboard and mission-control tooling import, and the Mesa GL stack (llvmpipe
+# software rendering for the reproducible bench + Intel iGPU fallback; NVIDIA GL
+# is injected at runtime by nvidia-container-toolkit, not baked here).
+# Named packages pinned to exact versions resolved 2026-06-19 (skill hard rule;
+# user-chosen "base digest + named pkgs" depth). Bumping a version is an
+# explicit edit here. NOTE vs prior art: ROS snapshots rolled to noble.20260615;
+# python3-psutil ADDED (perf_sampler.py runtime dep — P3-3).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gz-harmonic=1.0.0-1~noble \
+      ros-jazzy-ros-gz=1.0.22-1noble.20260616.074726 \
+      ros-jazzy-ros-gz-bridge=1.0.22-1noble.20260615.142443 \
+      ros-jazzy-ros-gz-sim=1.0.22-1noble.20260615.173223 \
+      ros-jazzy-ros-gz-image=1.0.22-1noble.20260615.145009 \
+      ros-jazzy-rviz2=14.1.22-1noble.20260615.174609 \
+      ros-jazzy-rviz-2d-overlay-msgs=1.4.1-1noble.20260615.114549 \
+      ros-jazzy-rviz-2d-overlay-plugins=1.4.1-1noble.20260615.153149 \
+      ros-jazzy-nav-msgs=5.3.8-1noble.20260615.112021 \
+      ros-jazzy-sensor-msgs=5.3.8-1noble.20260615.112429 \
+      ros-jazzy-sensor-msgs-py=5.3.8-1noble.20260615.124842 \
+      ros-jazzy-geometry-msgs=5.3.8-1noble.20260615.110340 \
+      ros-jazzy-std-msgs=5.3.8-1noble.20260615.102930 \
+      ros-jazzy-std-srvs=5.3.8-1noble.20260615.102935 \
+      ros-jazzy-visualization-msgs=5.3.8-1noble.20260615.114026 \
+      ros-jazzy-diagnostic-msgs=5.3.8-1noble.20260615.111600 \
+      ros-jazzy-diagnostic-updater=4.2.7-1noble.20260615.135857 \
+      ros-jazzy-diagnostic-aggregator=4.2.7-1noble.20260615.135607 \
+      ros-jazzy-lifecycle-msgs=2.0.4-1noble.20260615.102420 \
+      ros-jazzy-tf2=0.36.21-1noble.20260615.130312 \
+      ros-jazzy-tf2-ros=0.36.21-1noble.20260615.145818 \
+      ros-jazzy-cv-bridge=4.1.0-1noble.20260615.144656 \
+      ros-jazzy-launch=3.4.11-1noble.20260603.150356 \
+      ros-jazzy-launch-ros=0.26.12-1noble.20260615.134004 \
+      ros-jazzy-launch-xml=3.4.11-1noble.20260603.150705 \
+      ros-jazzy-python-qt-binding=2.2.2-1noble.20260226.000339 \
+      python3-pyqt5=5.15.10+dfsg-1build6 \
+      python3-numpy=1:1.26.4+ds-6ubuntu1 \
+      python3-yaml=6.0.1-2build2 \
+      python3-matplotlib=3.6.3-1ubuntu5 \
+      python3-reportlab=4.1.0-4 \
+      python3-opencv=4.6.0+dfsg-13.1ubuntu1 \
+      python3-psutil=5.9.8-2build2 \
+      libgl1-mesa-dri=25.2.8-0ubuntu0.24.04.2 \
+      libglx-mesa0=25.2.8-0ubuntu0.24.04.2 \
+      libegl-mesa0=25.2.8-0ubuntu0.24.04.2 \
+      libglu1-mesa=9.0.2-1.1build1 \
+      mesa-utils=9.0.0-2 \
+      xvfb=2:21.1.12-1ubuntu1.6 \
+      procps=2:4.0.4-4ubuntu3.2 \
+      tini=0.19.0-1 \
+ && rm -rf /var/lib/apt/lists/*
+
+# ---- builder: build-only deps + colcon build -------------------------------
+FROM base AS builder
+
+# colcon + rosdep already ship in ros:jazzy-ros-base; only compilers + CMake.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential=12.10ubuntu1 \
+      cmake=3.28.3-1build7 \
+      git=1:2.43.0-1ubuntu7.3 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ros2_ws
+COPY src/ src/
+
+# Resolve remaining declared deps, then build a self-contained install tree.
+# --merge-install (no --symlink-install) => install/ has no symlinks back into
+# src/, so the runtime stage needs only install/.
+RUN rosdep update --rosdistro jazzy \
+ && rosdep install --from-paths src --ignore-src -r -y || true
+RUN . /opt/ros/jazzy/setup.sh \
+ && colcon build --merge-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# ---- fuelcache: pre-fetch Gazebo Fuel models the world <include>s ----------
+# earthquake_zone.sdf <include>s models hosted on fuel.gazebosim.org. The
+# runtime `ros` network is internal (no egress), so those downloads must happen
+# now, at build time, into a cache baked into the image. compose.yaml sets
+# build network access so this RUN can reach Fuel. The final `test` fails the
+# build if the cache stayed empty (no silent broken-world image).
+FROM base AS fuelcache
+ENV GZ_FUEL_CACHE_PATH=/opt/gz_fuel
+COPY --from=builder /ros2_ws/install /ros2_ws/install
+RUN . /opt/ros/jazzy/setup.sh \
+ && export GZ_SIM_RESOURCE_PATH=/ros2_ws/install/share/drone_rescue_gazebo:/ros2_ws/install/share/drone_rescue_gazebo/models:/ros2_ws/install/share/drone_rescue_gazebo/worlds \
+ && mkdir -p /opt/gz_fuel \
+ && ( timeout 600 gz sim -s -r --iterations 1 \
+        /ros2_ws/install/share/drone_rescue_gazebo/worlds/earthquake_zone.sdf 2>&1 | tail -20 || true ) \
+ && echo '--- prefetched Fuel models ---' \
+ && find /opt/gz_fuel -maxdepth 6 -name 'model.sdf' -printf '%P\n' \
+ && test -n "$(find /opt/gz_fuel -name 'model.sdf' 2>/dev/null | head -1)"
+
+# ---- runtime: base closure + built workspace, no compilers -----------------
+FROM base AS runtime
+
+# GUI-only Python deps for the dashboard's 3D view (pyqtgraph.opengl). Placed in
+# the runtime stage — not base — so the builder/fuelcache stages (which don't
+# import them) stay cache-stable. Pinned, resolved 2026-06-19.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      python3-pyqtgraph=0.13.4-2 \
+      python3-pyqt5.qtopengl=5.15.10+dfsg-1build6 \
+      python3-opengl=3.1.7+dfsg-1 \
+      ros-jazzy-rcl-logging-noop=3.1.1-1noble.20260604.025147 \
+ && rm -rf /var/lib/apt/lists/*
+
+# Non-root user, UID >= 10000 to avoid host-collision (skill universal default).
+RUN groupadd --gid 10001 app \
+ && useradd --uid 10001 --gid 10001 --create-home --home-dir /home/app --shell /bin/bash app
+
+WORKDIR /ros2_ws
+COPY --from=builder /ros2_ws/install /ros2_ws/install
+# Baked Gazebo Fuel cache — lets the world load with no network egress.
+COPY --from=fuelcache /opt/gz_fuel /opt/gz_fuel
+
+# Entrypoint: source ROS + workspace, wire Gazebo resource paths, create the
+# runtime-writable dirs under /tmp (rootfs is read-only; /tmp is a tmpfs that
+# starts empty), then exec CMD. No WSL libs on a native-Linux host; NVIDIA GL
+# libraries are injected by nvidia-container-toolkit when the GPU is reserved.
+COPY <<'EOF' /entrypoint.sh
+#!/bin/bash
+set -e
+source /opt/ros/jazzy/setup.bash
+source /ros2_ws/install/setup.bash
+_GZ_SHARE=/ros2_ws/install/share/drone_rescue_gazebo
+export GZ_SIM_RESOURCE_PATH="${GZ_SIM_RESOURCE_PATH}:${_GZ_SHARE}:${_GZ_SHARE}/models:${_GZ_SHARE}/worlds"
+# Read-only rootfs: HOME (/home/app), /tmp and /tmp/xdg are tmpfs mounts owned
+# by uid 10001 in compose.yaml; create the ROS dot-dirs under them defensively
+# (harmless if already present).
+mkdir -p "${HOME}/.ros/log" "${XDG_RUNTIME_DIR}" 2>/dev/null || true
+exec "$@"
+EOF
+
+# Healthcheck: the simulation is healthy only when BOTH the Gazebo server
+# process is alive AND the coordination graph's pheromone_server node is up.
+# Checking pheromone_server alone is insufficient — it survives a dead Gazebo,
+# masking a world-load failure (e.g. missing Fuel models).
+COPY <<'EOF' /healthcheck.sh
+#!/bin/bash
+source /opt/ros/jazzy/setup.bash 2>/dev/null
+source /ros2_ws/install/setup.bash 2>/dev/null
+pgrep -f 'gz sim' >/dev/null || exit 1
+ros2 node list 2>/dev/null | grep -q pheromone_server || exit 1
+EOF
+
+# /data/runs is the mountpoint for the drone-runs named volume. Creating it
+# owned by uid 10001 means a fresh named volume inherits that ownership.
+RUN chmod +x /entrypoint.sh /healthcheck.sh \
+ && mkdir -p /data/runs /logs \
+ && chown -R 10001:10001 /home/app /data /logs
+
+ENV ROS_DOMAIN_ID=0 \
+    RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
+    HOME=/home/app \
+    XDG_RUNTIME_DIR=/tmp/xdg \
+    GZ_SIM_RESOURCE_PATH=/ros2_ws/install/share/drone_rescue_gazebo \
+    GZ_FUEL_CACHE_PATH=/opt/gz_fuel \
+    RCL_LOGGING_IMPLEMENTATION=rcl_logging_noop \
+    ROS_LOG_DIR=/logs
+# ^ Two-part fix for the No-space-left log storm under load:
+#   (1) rcl_logging_noop disables the rcl/rclpy file-logging backend.
+#   (2) ROS_LOG_DIR=/logs sends the `launch` framework's launch.log (which
+#       captures all child-process stdout) to the disk-backed `ros-logs` volume
+#       instead of the size-capped /home/app tmpfs — mirroring bare-metal's
+#       unlimited-disk log dir. /logs is created owned 10001 so a fresh named
+#       volume inherits that ownership.
+
+USER 10001
+
+ENTRYPOINT ["/entrypoint.sh"]
+# Default: headless 4-drone simulation. Overridden per service in compose.yaml.
+CMD ["ros2", "launch", "drone_rescue_bringup", "multi_drone_simulation.launch.py", \
+     "num_drones:=4", "use_rviz:=false", "runs_dir:=/data/runs"]

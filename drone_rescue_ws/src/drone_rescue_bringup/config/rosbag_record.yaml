@@ -1,0 +1,32 @@
+# ROS 2 Bag Recording Configuration
+# Topics recorded for diagnostics and post-mortem analysis
+#
+# Usage with ros2 bag:
+#   ros2 bag record --topics-file <path-to-this-file>
+#
+# Or via launch file with record_bag:=true
+
+# Core diagnostic topics
+topics:
+  # Raw diagnostics from all nodes
+  - /diagnostics
+  # Aggregated diagnostics (grouped by drone/subsystem)
+  - /diagnostics_agg
+  # Top-level system state
+  - /diagnostics_toplevel_state
+
+  # Drone status (for correlation with diagnostics)
+  - /drone1/status
+  - /drone2/status
+  - /drone3/status
+  - /drone4/status
+
+  # Pheromone coverage (mission progress)
+  - /pheromone/coverage
+
+  # Survey events
+  - /survey/start
+  - /victims/detected
+
+  # Environment state (weather affects behavior)
+  - /environment/weather

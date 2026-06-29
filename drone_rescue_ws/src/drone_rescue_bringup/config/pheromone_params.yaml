@@ -1,0 +1,44 @@
+# Pheromone coordination parameters
+
+# --- Grid Parameters ---
+pheromone_grid:
+  resolution: 1.0  # meters per cell
+  width: 100  # cells (100m with 1m resolution)
+  height: 100  # cells
+  origin_x: -50.0  # world coordinates of grid origin
+  origin_y: -50.0
+
+# --- Pheromone Dynamics ---
+pheromone:
+  # Deposit parameters
+  deposit_strength: 1.0  # value deposited when drone visits cell (0-1)
+  deposit_radius: 2  # cells around drone position to mark
+
+  # Decay parameters
+  decay_rate: 0.99  # multiplied each update (0.99 = ~1% decay per update)
+  decay_update_rate: 1.0  # Hz - how often decay is applied
+
+  # Evaporation threshold
+  evaporation_threshold: 0.01  # below this, set to 0
+
+# --- Drone Behavior Parameters ---
+behavior:
+  # Repulsion from pheromone
+  repulsion_strength: 2.0  # weight of pheromone avoidance
+  repulsion_radius: 5  # cells to check for gradient
+
+  # Attraction to unexplored areas
+  exploration_strength: 1.5  # weight of boundary attraction
+  exploration_radius: 10  # how far to look for unexplored areas
+
+  # Random walk component
+  random_walk_strength: 0.3  # adds exploration randomness
+
+  # Gradient sampling
+  gradient_samples: 8  # number of directions to sample
+
+# --- Coverage Tracking ---
+coverage:
+  complete_threshold: 0.95  # 95% coverage considered complete
+  update_rate: 1.0  # Hz - how often to recalculate coverage
+  visualization_update_rate: 2.0  # Hz - RViz marker updates
