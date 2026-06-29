@@ -117,12 +117,3 @@ PYTHONPATH=src/drone_rescue_coordination:$PYTHONPATH python3 -m pytest src/*/tes
 | `docs/studyguide/` | A concise illustrated guide to the internal architecture and the algorithms behind the coordination (build to `main.pdf`). |
 | `docs/thesis/` | The full, in-depth technical report, including the evaluation study. |
 | `dockerize/REPORT.md`, `dockerize/SECURITY.md` | Container build validation and security posture. |
-
-## Status and limitations
-
-The simulation and its evaluation harness are functional, and a mission has been
-measured end-to-end with a survivor located to within 0.14 m of ground truth.
-Victim detection runs on synthetic sensor data with injected noise — it exercises
-the clustering and fusion pipeline rather than a real computer-vision stack — and
-results are produced in simulation on a single host, so the figures speak to the
-relative merits of coordination strategies under controlled conditions.
