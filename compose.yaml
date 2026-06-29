@@ -128,7 +128,7 @@ services:
     restart: "no"              # observer GUI: closing the window must STAY closed,
                                # not be relaunched by the shared unless-stopped policy
     ipc: host                  # X11 MIT-SHM: share host IPC so XShmAttach to the host
-                               # X/XWayland server succeeds (see dockerize/SECURITY.md)
+                               # X/XWayland server succeeds
     depends_on:
       sim:
         condition: service_healthy
@@ -176,7 +176,7 @@ services:
     container_name: drone-rescue-rviz
     profiles: [gui]
     restart: "no"              # observer GUI: closing the window must STAY closed
-    ipc: host                  # X11 MIT-SHM (see dockerize/SECURITY.md)
+    ipc: host                  # X11 MIT-SHM
     depends_on:
       sim:
         condition: service_healthy
@@ -249,7 +249,7 @@ services:
     image: drone-rescue-sim:dockerize
     profiles: [tools]
     networks: [ros]
-    ipc: host                   # X11 MIT-SHM (see dockerize/SECURITY.md)
+    ipc: host                   # X11 MIT-SHM
     working_dir: /data          # mission_control auto-resolves cwd/runs → writable volume
     shm_size: "2gb"
     cpus: 24.0                  # Phase 5 iter1: 6→24 (spawns its own sim)

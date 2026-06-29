@@ -60,12 +60,12 @@ cmd_deps() {
   # NVIDIA host driver (optional: GPU render; software fallback otherwise)
   if have nvidia-smi && nvidia-smi -L >/dev/null 2>&1; then
     ok "NVIDIA driver: $(nvidia-smi --query-gpu=name,driver_version --format=csv,noheader 2>/dev/null | head -1)"
-  else warn "NVIDIA driver not active — GPU render unavailable; sim falls back to software (slower). See dockerize/RUNBOOK.md."; fi
+  else warn "NVIDIA driver not active — GPU render unavailable; sim falls back to software (slower)."; fi
 
   # nvidia-container-toolkit (optional: needed for --gpus)
   if have nvidia-ctk; then
     ok "nvidia-container-toolkit: $(nvidia-ctk --version 2>/dev/null | head -1 | awk '{print $NF}')"
-  else warn "nvidia-container-toolkit not found — GPU passthrough disabled. See dockerize/RUNBOOK.md."; fi
+  else warn "nvidia-container-toolkit not found — GPU passthrough disabled."; fi
 
   # GPU reaches containers (only if both above present)
   if have nvidia-smi && nvidia-smi -L >/dev/null 2>&1 && have nvidia-ctk; then

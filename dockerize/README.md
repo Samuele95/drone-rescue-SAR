@@ -54,7 +54,6 @@ Recorded missions persist in the `drone-rescue_drone-runs` Docker volume.
 ## Going deeper
 
 - `TUTORIAL.md` — guided, copy-paste walk-through from build to results.
-- `SECURITY.md` — hardening posture, per-service controls, host changes made.
 
 ## Requirements
 

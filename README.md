@@ -113,4 +113,3 @@ PYTHONPATH=src/drone_rescue_coordination:$PYTHONPATH python3 -m pytest src/*/tes
 | Document | What it covers |
 |---|---|
 | `dockerize/TUTORIAL.md` | Step-by-step walk-through from build to results. |
-| `dockerize/SECURITY.md` | Container security posture and per-service controls. |
